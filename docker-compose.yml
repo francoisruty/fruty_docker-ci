@@ -1,0 +1,86 @@
+version: '2'
+services:
+
+  registry:
+    image: registry:2
+    ports:
+        - "127.0.0.1:5500:5000"
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: 'true'
+
+  git-watcher:
+    build: ./watcher
+    ports:
+        - "127.0.0.1:5500:5000"
+    volumes:
+      - ./logs:/logs
+      - ./versions:/versions
+      - ./git_data:/git_data
+    environment:
+      NODE_ENV: production
+
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:3.7.3
+    volumes:
+      - ./rabbit_data:/var/lib/rabbitmq   #for data persistence
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+
+  flower:
+    build: .
+    command: flower -A worker --port=5555 --persistent=True --db=/db/db --broker=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit
+    environment:
+      - BROKER=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit
+    volumes:
+      - ./worker:/worker
+      - ./flower_data:/db  #for data persistence
+    ports:
+        - "127.0.0.1:5000:5555"
+    links:
+        - rabbit
+    depends_on:
+        - rabbit
+
+  worker-1:
+    build: ./worker
+    privileged: true
+    command: celery -A worker worker --loglevel=info -Ofair --concurrency=1
+    environment:
+      - BROKER=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit
+    volumes:
+      - ./worker:/worker
+      - ./logs:/logs
+      - ./versions:/versions
+      - ./git_data:/git_data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+    links:
+        - rabbit
+    depends_on:
+        - rabbit
+
+
+  worker-2:
+    build: ./worker
+    privileged: true
+    command: celery -A worker worker --loglevel=info -Ofair --concurrency=1
+    environment:
+      - BROKER=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit
+    volumes:
+      - ./worker:/worker
+      - ./logs:/logs
+      - ./versions:/versions
+      - ./git_data:/git_data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+    links:
+        - rabbit
+    depends_on:
+        - rabbit
+
+
+
+volumes:
+  rabbit-staging: {}
