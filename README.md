@@ -30,3 +30,11 @@ curl -X GET localhost:5500/v2/_catalog
 ### NOTES
 
 For a private repo, you will need to change a few things to allow github authentication.
+
+In watcher/Dockerfile, you will need to add those lines:
+
+RUN {{whatever command to get your github key, which we'll name "gitwatcher" in following lines}}
+RUN chmod 600 ./gitwatcher
+RUN mkdir ~/.ssh && touch ~/.ssh/known_hosts && ssh-keyscan github.com >> ~/.ssh/known_hosts && touch ~/.ssh/config && echo "Host github.com" >> ~/.ssh/config && echo "  StrictHostKeyChecking no" >> ~/.ssh/config && echo "  IdentityFile /usr/app/gitwatcher" >> ~/.ssh/config
+
+This will enable you to performs clones and pulles on private repositories from inside the git watcher docker container.
