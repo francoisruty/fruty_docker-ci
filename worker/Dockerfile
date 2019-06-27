@@ -5,3 +5,6 @@ COPY requirements.txt /requirements.txt
 ENV PYTHONDONTWRITEBYTECODE=1
 RUN DEBIAN_FRONTEND=noninteractive pip install -r /requirements.txt \
     && apt-get update --fix-missing
+
+WORKDIR /
+COPY . /worker
