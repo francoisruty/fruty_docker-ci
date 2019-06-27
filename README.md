@@ -65,6 +65,13 @@ This means the CI successfully received the webhook, built the docker container 
 
 ### NOTES
 
+** Docker registry address
+
+One could wonder why the build celery task uses 127.0.0.1:5500 for the registry  (its external address) instead of communicating with it directly container to container.
+We are using "docker in docker" with volume mappings, which means the build task, even though it runs inside a worker container, really interacts with the host docker daemon. So when we specify the docker registry address with the docker tag command, we must use an address visible from the host.
+
+** Private repo
+
 For a private repo, you will need to change a few things to allow github authentication.
 
 In watcher/Dockerfile, you will need to add those lines:
