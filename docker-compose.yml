@@ -29,7 +29,7 @@ services:
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
 
   flower:
-    build: .
+    build: ./worker
     command: flower -A worker --port=5555 --persistent=True --db=/db/db --broker=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit
     environment:
       - BROKER=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit

@@ -20,6 +20,14 @@ git checkout master
 
 Make a curl to the watcher endpoint to simulate a github webhook.
 
+curl -X POST \
+  127.0.0.1:5500 \
+  -H 'Cache-Control: no-cache' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "ref": "refs/heads/master"
+}'
+
 Go to localhost:5000 to see the celery task.
 
 When it's finished, check that the registry now contains the image:
