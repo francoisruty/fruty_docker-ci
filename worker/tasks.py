@@ -3,6 +3,7 @@ from celery.exceptions import SoftTimeLimitExceeded
 from worker.celery import app
 import time
 import shutil
+import os
 
 from worker.utils import createFolder, launchShellCommand, logger, listFiles, ciBumpVersion
 
@@ -40,15 +41,15 @@ def build(repo, headCommit):
         logger(taskId, "Building docker image... : " + dockerImgName)
         res = launchShellCommand(taskId, 'cd ' + repoFolder + ' && docker build -f ' + dockerfile + ' -t ' + dockerImgName + ' .')
         logger(taskId, "Tagging docker image...")
-        tag1 = "registry:5000/" + dockerImgName + ":latest"
+        tag1 = os.environ["REGISTRY"] + "/" + dockerImgName + ":latest"
         res = launchShellCommand(taskId, 'docker tag ' + dockerImgName + ' ' + tag1)
         res = launchShellCommand(taskId, 'docker push ' + tag1)
 
         logger(taskId, "Tagging docker image for production... Version: " + version)
-        tag2 = "registry:5000/" + dockerImgName + ":" + version
+        tag2 = os.environ["REGISTRY"] + "/" + dockerImgName + ":" + version
         res = launchShellCommand(taskId, 'docker tag ' + dockerImgName + ' ' + tag2)
         res = launchShellCommand(taskId, 'docker push ' + tag2)
-        tag3 = "registry:5000/" + dockerImgName + ":" + headCommit
+        tag3 = os.environ["REGISTRY"] + "/" + dockerImgName + ":" + headCommit
         res = launchShellCommand(taskId, 'docker tag ' + dockerImgName + ' ' + tag3)
         res = launchShellCommand(taskId, 'docker push ' + tag3)
 

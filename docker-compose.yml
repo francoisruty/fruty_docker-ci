@@ -11,7 +11,7 @@ services:
   git-watcher:
     build: ./watcher
     ports:
-        - "127.0.0.1:5500:5000"
+        - "127.0.0.1:6000:3000"
     volumes:
       - ./logs:/logs
       - ./versions:/versions
@@ -34,7 +34,6 @@ services:
     environment:
       - BROKER=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit
     volumes:
-      - ./worker:/worker
       - ./flower_data:/db  #for data persistence
     ports:
         - "127.0.0.1:5000:5555"
@@ -49,8 +48,8 @@ services:
     command: celery -A worker worker --loglevel=info -Ofair --concurrency=1
     environment:
       - BROKER=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit
+      - REGISTRY=127.0.0.1:5500
     volumes:
-      - ./worker:/worker
       - ./logs:/logs
       - ./versions:/versions
       - ./git_data:/git_data
@@ -60,7 +59,6 @@ services:
         - rabbit
     depends_on:
         - rabbit
-
 
   worker-2:
     build: ./worker
@@ -68,8 +66,8 @@ services:
     command: celery -A worker worker --loglevel=info -Ofair --concurrency=1
     environment:
       - BROKER=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbit
+      - REGISTRY=127.0.0.1:5500
     volumes:
-      - ./worker:/worker
       - ./logs:/logs
       - ./versions:/versions
       - ./git_data:/git_data
@@ -79,7 +77,6 @@ services:
         - rabbit
     depends_on:
         - rabbit
-
 
 
 volumes:
