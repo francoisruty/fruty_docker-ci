@@ -12,22 +12,26 @@ We have:
 
 ### Test
 
-NOTE: this was tested on ubuntu 16.04
+NOTE: this was tested on ubuntu 16.04, with docker and docker-compose installed.
 
 For the sake of this test, we will use this repository as a build target.
 
-***Make sure you're on a linux OS. This docker-based simple CI system uses "docker in docker" with volumes binding on /var/run/docker.sock and /var/run/docker.sock
+***Make sure you're on a linux OS. This docker-based simple CI system uses "docker in docker" with volumes binding on /var/run/docker.sock and /usr/bin/docker
 A lot of commercial CI systems do the same, to be able to perform "docker build" commands inside docker containers.
 Those volume mappings do not work on Windows and OsX since on those OSes docker daemon actually runs inside a hidden linux VM, with volume mappings bridging docker container inside with Windows/OsX host where docker binary is not present.
 
-***Make sure the registry (which listens on 127.0.0.1:5500) is allowed as insecure registry (http instead of https). Normally local registries are allowed by default as insecure, you can check that with docker config.
+***Make sure the registry (which listens on 127.0.0.1:5500) is allowed as insecure registry (http instead of https). Normally local registries are allowed by default as insecure, you can check that with "docker info".
 If that's not the case, do this:
 sudo bash -c 'echo "DOCKER_OPTS=\"--insecure-registry 127.0.0.1:5500\"" >> /etc/default/docker'
 sudo bash -c 'echo "{\"insecure-registries\": [\"127.0.0.1:5500\"]}" >> /etc/docker/daemon.json'
 sudo systemctl restart docker
 
+*** Instructions:
+On the host,
+git clone https://github.com/francoisruty/fruty_docker-ci.git
+cd fruty_docker-ci
 
-First of all, make sure this repository has been cloned a first time: (the CI system will pull, but not do initial git clones):
+First of all, make sure this repository has been cloned a first time INSIDE the git-watcher container: (the CI system will pull the watched repositories, but not do initial git clones):
 docker-compose up -d
 docker-compose exec git-watcher /bin/bash
 cd /git_data
@@ -50,10 +54,11 @@ You should get in return {"status":"success","data":"","message":"hook successfu
 This means the git watcher node service received the hook message, performed a git pull, and created a build task in the celery queue.
 
 NOTE: the build task looks for all Dockerfile* files in the repository root. Here we have a bogus Dockefile_test, for the sake of testing. This Dockerfile will be used by the build task.
-By convention, any Dockerfile_* will yield a build with image name {{repository}}_{{Dockerfile _* suffix}}
+By convention, any Dockerfile_* will yield a build
+with image name {{repository}}_{{Dockerfile _* suffix}}
 
 Go to localhost:5000 (flower web interface) to see the celery task.
-You can go to ./logs/{task id} to see the logs.
+You can go to ./logs/{task id}.txt to see the logs.
 
 When the task is finished, it must appear as "successful" check that the registry now contains the image:
 
