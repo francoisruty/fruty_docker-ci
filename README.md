@@ -1,3 +1,5 @@
+This repo refers to https://fruty.io/2018/07/25/multistage-dockerfiles-do-we-still-need-ci-software/
+
 ### General overview
 
 We have:
